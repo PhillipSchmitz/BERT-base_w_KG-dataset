@@ -5,21 +5,22 @@ with open('entities.json', 'r') as f:
     data = json.load(f)
 csv_filename = 'extracted_data/extracted_entities.csv'
 with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
-    fieldnames = ['Entity ID', 'Label', 'Description', 'Wiki link']
+    fieldnames = ['Entity ID', 'Label', 'Description']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
     for i, (entity_id, entity_info) in enumerate(data.items()):
         label = entity_info.get('label', '')
         description = entity_info.get('description', '')
-        wiki = entity_info.get('wiki', '')
 
-        writer.writerow({
-            'Entity ID': entity_id,
-            'Label': label,
-            'Description': description,
-            'Wiki link': wiki
-        })
+        if label == "" or description == "":
+            continue
+        else:
+            writer.writerow({
+                'Entity ID': entity_id,
+                'Label': label,
+                'Description': description,
+            })
 print(f"Data has been saved to {csv_filename}")
 
 
