@@ -1,5 +1,6 @@
 from transformers import BertForSequenceClassification, BertTokenizer
 import pandas as pd
+import torch
 
 df = pd.read_csv("train_dir/train.csv", sep=",")
 labels = df["Object"].tolist()
@@ -12,20 +13,15 @@ encoded_labels = [label2id[label] for label in labels]
 model = BertForSequenceClassification.from_pretrained("bert-base-german-cased")
 tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased")
 
-# Encode a sentence
-sentence = "Your input sentence here."
-encoded_dict = tokenizer.encode_plus(
-    sentence,
-    add_special_tokens=True,
-    max_length=128,
-    padding="max_length",
-    truncation=True,
-    return_tensors="pt",
-)
+# Example: Fine-tuning loop
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+loss_fn = torch.nn.CrossEntropyLoss()
 
-# Get the model's prediction
-logits = model(**encoded_dict).logits
-predicted_label_id = logits.argmax().item()
-predicted_label = id2label[predicted_label_id]
-
-
+for epoch in range(3):
+    for batch in dataloader:  # Iterate over your data batches
+        inputs, labels = batch
+        optimizer.zero_grad()
+        outputs = model(**inputs).logits
+        loss = loss_fn(outputs, labels)
+        loss.backward()
+        optimizer.step()
