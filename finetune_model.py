@@ -1,14 +1,31 @@
-from transformers import BertTokenizer, TFBertForSequenceClassification
+from transformers import BertForSequenceClassification, BertTokenizer
 import pandas as pd
-import tensorflow as tf
 
 df = pd.read_csv("train_dir/train.csv", sep=",")
-df['input_sequence'] = df['Subject'] + ' ' + df['Object']
+labels = df["Object"].tolist()
 
-model_name = "bert-base-german-cased"
-tokenizer = BertTokenizer.from_pretrained(model_name)
-model = TFBertForSequenceClassification.from_pretrained(model_name)
+label2id = {label: idx for idx, label in enumerate(set(labels))}
+id2label = {idx: label for label, idx in label2id.items()}
+encoded_labels = [label2id[label] for label in labels]
 
-print(df["input_sequence"]) # Hnandling of null value columns
-inputs = tokenizer(df['input_sequence'].tolist(), padding='max_length', truncation=True, max_length=128, return_tensors='tf', return_attention_mask=True)
+# Load your fine-tuned model
+model = BertForSequenceClassification.from_pretrained("bert-base-german-cased")
+tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased")
+
+# Encode a sentence
+sentence = "Your input sentence here."
+encoded_dict = tokenizer.encode_plus(
+    sentence,
+    add_special_tokens=True,
+    max_length=128,
+    padding="max_length",
+    truncation=True,
+    return_tensors="pt",
+)
+
+# Get the model's prediction
+logits = model(**encoded_dict).logits
+predicted_label_id = logits.argmax().item()
+predicted_label = id2label[predicted_label_id]
+
 
