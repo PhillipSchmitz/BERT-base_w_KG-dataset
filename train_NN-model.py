@@ -1,27 +1,42 @@
-from transformers import BertForSequenceClassification, BertTokenizer
 import pandas as pd
-import torch
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from keras.models import Sequential
+from keras.layers import Dense
 
-df = pd.read_csv("train_dir/train.csv", sep=",")
-labels = df["Object"].tolist()
+# Load your CSV data (replace 'your_data.csv' with your actual file)
+data = pd.read_csv('train_dir/train.csv')
 
-label2id = {label: idx for idx, label in enumerate(set(labels))}
-id2label = {idx: label for label, idx in label2id.items()}
-encoded_labels = [label2id[label] for label in labels]
+# Extract subject and predicate columns
+subjects = data['Subject'].values
+predicates = data['Predicate'].values
+objects = data['Object'].values
 
-# Load your fine-tuned model
-model = BertForSequenceClassification.from_pretrained("bert-base-german-cased")
-tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased")
+# Initialize TfidfVectorizer
+vectorizer = TfidfVectorizer()
 
-# Example: Fine-tuning loop
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
-loss_fn = torch.nn.CrossEntropyLoss()
+# Fit and transform subjects and predicates
+encoded_subjects = vectorizer.fit_transform(subjects)
+encoded_predicates = vectorizer.transform(predicates)
 
-for epoch in range(3):
-    for batch in dataloader:  # Iterate over your data batches
-        inputs, labels = batch
-        optimizer.zero_grad()
-        outputs = model(**inputs).logits
-        loss = loss_fn(outputs, labels)
-        loss.backward()
-        optimizer.step()
+# Combine encoded subject and predicate vectors
+combined_input = np.concatenate([encoded_subjects.toarray(), encoded_predicates.toarray()], axis=1)
+
+# Define your model architecture
+model = Sequential()
+model.add(Dense(64, activation='relu', input_dim=combined_input.shape[1]))  # Adjust input dimension
+model.add(Dense(len(objects), activation='softmax'))
+
+# Compile the model
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# Train the model
+model.fit(combined_input, objects, epochs=10, validation_split=0.2)
+
+# Predict the object for a new triple
+#new_encoded_subject = vectorizer.transform([your_subject])  # Encode your subject
+#new_encoded_predicate = vectorizer.transform([your_predicate])  # Encode your predicate
+#combined_new_input = np.concatenate([new_encoded_subject.toarray(), new_encoded_predicate.toarray()], axis=1)
+#predicted_object = model.predict(combined_new_input)
+
+#print("Predicted object:", predicted_object)
