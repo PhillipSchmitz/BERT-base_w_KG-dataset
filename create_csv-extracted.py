@@ -13,14 +13,11 @@ with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
         label = entity_info.get('label', '')
         description = entity_info.get('description', '')
 
-        if label == "" or description == "":
-            continue
-        else:
-            writer.writerow({
-                'Entity ID': entity_id,
-                'Label': label,
-                'Description': description,
-            })
+        writer.writerow({
+        'Entity ID': entity_id,
+        'Label': label,
+        'Description': description,
+        })
 print(f"Data has been saved to {csv_filename}")
 
 

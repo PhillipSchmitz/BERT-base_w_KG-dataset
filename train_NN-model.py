@@ -17,7 +17,8 @@ vectorizer = TfidfVectorizer()
 
 # Fit and transform subjects and predicates
 encoded_subjects = vectorizer.fit_transform(subjects)
-encoded_predicates = vectorizer.transform(predicates)
+print(predicates)
+encoded_predicates = vectorizer.fit_transform(predicates)
 
 # Combine encoded subject and predicate vectors
 combined_input = np.concatenate([encoded_subjects.toarray(), encoded_predicates.toarray()], axis=1)
