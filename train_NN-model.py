@@ -13,7 +13,7 @@ predicates = data['Predicate'].values
 objects = data['Object'].values
 
 # Initialize TfidfVectorizer
-vectorizer = TfidfVectorizer()
+# vectorizer = TfidfVectorizer() # re-comment if needed
 
 # Fit and transform subjects and predicates
 encoded_subjects = vectorizer.fit_transform(subjects)
